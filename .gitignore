@@ -1,0 +1,23 @@
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Notebooks (Restricted)
+data/
+*.csv
+*.json
+*.sqlite3
+.ipynb_checkpoints/
+
+# OS generated files
+.DS_Store
+Thumbs.db
