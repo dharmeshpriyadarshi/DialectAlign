@@ -3,3 +3,6 @@ black==24.2.0
 flake8==7.0.0
 pandas==2.2.0
 scikit-learn==1.4.0
+jupyter==1.0.0
+matplotlib==3.8.3
+seaborn==0.13.2
