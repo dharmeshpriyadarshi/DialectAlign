@@ -1,5 +1,11 @@
 import os
+import sys
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
+
+from src.logger import logging
+from src.exception import CustomException
 
 @dataclass
 class DataIngestionConfig:
@@ -9,3 +15,39 @@ class DataIngestionConfig:
     train_data_path: str = os.path.join('artifacts', 'train.csv')
     test_data_path: str = os.path.join('artifacts', 'test.csv')
     raw_data_path: str = os.path.join('artifacts', 'data.csv')
+
+class DataIngestion:
+    def __init__(self):
+        self.ingestion_config = DataIngestionConfig()
+
+    def initiate_data_ingestion(self, source_data_path: str) -> tuple:
+        """
+        Reads raw dataset, performs train-test split, and stores artifacts.
+        """
+        logging.info("Initiating data ingestion component.")
+        try:
+            if not os.path.exists(source_data_path):
+                raise FileNotFoundError(f"Source dataset not found at {source_data_path}")
+            
+            df = pd.read_csv(source_data_path)
+            logging.info(f"Successfully read dataset from {source_data_path}")
+
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
+
+            df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
+            logging.info("Raw data artifact saved.")
+
+            logging.info("Executing train-test split (80/20).")
+            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
+
+            train_set.to_csv(self.ingestion_config.train_data_path, index=False, header=True)
+            test_set.to_csv(self.ingestion_config.test_data_path, index=False, header=True)
+            logging.info("Train and test data artifacts saved successfully.")
+
+            return (
+                self.ingestion_config.train_data_path,
+                self.ingestion_config.test_data_path
+            )
+
+        except Exception as e:
+            raise CustomException(e, sys)
