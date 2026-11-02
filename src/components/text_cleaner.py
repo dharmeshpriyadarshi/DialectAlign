@@ -1,5 +1,6 @@
 import re
 import sys
+
 from src.logger import logging
 from src.exception import CustomException
 
@@ -26,18 +27,24 @@ class TextNormalizer:
             )
             text = re.sub(r'<.*?>', '', text)
             return text
+
         except Exception as e:
             raise CustomException(e, sys)
 
     @staticmethod
     def remove_noise_preserve_indic(text: str) -> str:
         try:
-            # Preserve alphanumeric, whitespaces, and Devanagari block
+            # Remove Devanagari punctuation
+            text = re.sub(r'[।॥]', '', text)
+
+            # Preserve alphanumeric, whitespace and Devanagari
             text = re.sub(r'[^\w\s\u0900-\u097F]', '', text)
 
-            # Normalize multi-spaces into single spaces
+            # Normalize multiple spaces
             text = re.sub(r'\s+', ' ', text).strip()
+
             return text
+
         except Exception as e:
             raise CustomException(e, sys)
 
