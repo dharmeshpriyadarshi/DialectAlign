@@ -38,6 +38,35 @@ class DataTransformation:
     def initiate_data_transformation(self, train_path: str, test_path: str):
         """
         Applies the preprocessing pipeline to the train and test datasets.
-        (Implementation deferred to Task 2).
         """
-        pass
+        try:
+            logging.info(f"Loading training data from {train_path}")
+            logging.info(f"Loading testing data from {test_path}")
+            
+            train_df = pd.read_csv(train_path)
+            test_df = pd.read_csv(test_path)
+
+            logging.info("Retrieving preprocessing objects.")
+            text_normalizer, label_encoder = self.get_data_transformer_objects()
+
+            logging.info("Applying TextNormalizer to train and test text columns.")
+            train_df['text'] = train_df['text'].apply(text_normalizer.normalize)
+            test_df['text'] = test_df['text'].apply(text_normalizer.normalize)
+
+            logging.info("Fitting LabelEncoder on training labels and transforming.")
+            train_df['label'] = label_encoder.fit_transform(train_df['label'])
+            
+            logging.info("Transforming testing labels (Strictly NO fitting).")
+            test_df['label'] = label_encoder.transform(test_df['label'])
+
+            logging.info("Data transformation applied successfully.")
+
+            return (
+                train_df,
+                test_df,
+                text_normalizer,
+                label_encoder
+            )
+
+        except Exception as e:
+            raise CustomException(e, sys)
