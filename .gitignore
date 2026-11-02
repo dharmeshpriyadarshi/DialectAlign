@@ -29,3 +29,6 @@ logs/
 # Serialized Artifacts
 artifacts/
 *.pkl
+
+# Testing Cache
+.pytest_cache/
