@@ -37,7 +37,7 @@ class DataTransformation:
 
     def initiate_data_transformation(self, train_path: str, test_path: str):
         """
-        Applies the preprocessing pipeline to the train and test datasets.
+        Applies the preprocessing pipeline to the train and test datasets and serializes objects.
         """
         try:
             logging.info(f"Loading training data from {train_path}")
@@ -59,13 +59,23 @@ class DataTransformation:
             logging.info("Transforming testing labels (Strictly NO fitting).")
             test_df['label'] = label_encoder.transform(test_df['label'])
 
-            logging.info("Data transformation applied successfully.")
+            logging.info("Serializing preprocessing objects to disk.")
+            save_object(
+                file_path=self.transformation_config.preprocessor_obj_file_path,
+                obj=text_normalizer
+            )
+            save_object(
+                file_path=self.transformation_config.label_encoder_file_path,
+                obj=label_encoder
+            )
+
+            logging.info("Data transformation and serialization applied successfully.")
 
             return (
                 train_df,
                 test_df,
-                text_normalizer,
-                label_encoder
+                self.transformation_config.preprocessor_obj_file_path,
+                self.transformation_config.label_encoder_file_path
             )
 
         except Exception as e:
