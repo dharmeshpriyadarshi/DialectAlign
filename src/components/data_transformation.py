@@ -1,40 +1,43 @@
 import os
 import sys
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 from dataclasses import dataclass
 
 from src.logger import logging
 from src.exception import CustomException
+from src.components.text_cleaner import TextNormalizer
+from src.utils import save_object
 
 @dataclass
 class DataTransformationConfig:
     """
-    Configuration class defining the file path for the serialized preprocessor object.
+    Configuration defining file paths for serialized preprocessing objects.
     """
     preprocessor_obj_file_path: str = os.path.join('artifacts', 'preprocessor.pkl')
+    label_encoder_file_path: str = os.path.join('artifacts', 'label_encoder.pkl')
 
 class DataTransformation:
     def __init__(self):
-        self.data_transformation_config = DataTransformationConfig()
+        self.transformation_config = DataTransformationConfig()
 
-    def get_data_transformer_object(self):
+    def get_data_transformer_objects(self):
         """
-        Constructs and returns the data preprocessing pipeline.
-        (Implementation deferred to Phase 2: Cross-Lingual Preprocessing).
+        Constructs and returns the text normalizer and label encoder objects.
         """
         try:
-            logging.info("Initializing data transformer object construction.")
-            # Placeholder for future text cleaning, TF-IDF/Tokenizer pipelines
-            pass
+            logging.info("Instantiating TextNormalizer and LabelEncoder.")
+            text_normalizer = TextNormalizer()
+            label_encoder = LabelEncoder()
+            
+            return text_normalizer, label_encoder
+            
         except Exception as e:
             raise CustomException(e, sys)
 
     def initiate_data_transformation(self, train_path: str, test_path: str):
         """
         Applies the preprocessing pipeline to the train and test datasets.
+        (Implementation deferred to Task 2).
         """
-        try:
-            logging.info(f"Initiating data transformation on: {train_path} and {test_path}")
-            # Placeholder for applying the transformer object to the datasets
-            pass
-        except Exception as e:
-            raise CustomException(e, sys)
+        pass
