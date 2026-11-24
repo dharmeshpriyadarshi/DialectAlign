@@ -108,6 +108,162 @@ def validate_input_files():
             )
 
 
+
+def load_published_candidate(manifest_path=None):
+    """Load only a hash-verified, manifest-published candidate."""
+
+    manifest_path = (
+        Path(manifest_path)
+        if manifest_path is not None
+        else OUTPUT_MANIFEST
+    )
+
+    manifest = json.loads(
+        manifest_path.read_text(encoding="utf-8")
+    )
+
+    if not isinstance(manifest, dict):
+        raise ValueError("Invalid candidate manifest.")
+
+    if manifest.get("schema_version") != 1:
+        raise ValueError("Unsupported candidate manifest schema.")
+
+    if (
+        manifest.get("research_use_status") != "QUARANTINED"
+        or manifest.get("training_approved") is not False
+        or manifest.get("redistribution_approved") is not False
+    ):
+        raise ValueError("Candidate quarantine policy mismatch.")
+
+    expected_hash = manifest.get("candidate_sha256")
+
+    if (
+        not isinstance(expected_hash, str)
+        or re.fullmatch(r"[0-9a-f]{64}", expected_hash) is None
+    ):
+        raise ValueError("Invalid manifest candidate SHA-256.")
+
+    expected_name = f"{OUTPUT_CSV.stem}.{expected_hash}.csv"
+
+    if manifest.get("candidate_file") != expected_name:
+        raise ValueError("Invalid versioned candidate filename.")
+
+    candidate_path = manifest_path.parent / expected_name
+
+    if not candidate_path.is_file():
+        raise FileNotFoundError(
+            "Published candidate file is missing."
+        )
+
+    if sha256_file(candidate_path) != expected_hash:
+        raise ValueError("Published candidate SHA-256 mismatch.")
+
+    with candidate_path.open(
+        "r", encoding="utf-8", newline=""
+    ) as file:
+        reader = csv.DictReader(file)
+
+        if reader.fieldnames != FIELDS:
+            raise ValueError("Candidate CSV schema mismatch.")
+
+        rows = list(reader)
+
+    seen_ids = set()
+    counts = Counter()
+    replacement_total = 0
+
+    for row in rows:
+        if set(row) != set(FIELDS):
+            raise ValueError("Malformed candidate CSV row.")
+
+        record_id = row["record_id"]
+        text = row["text"]
+
+        if not record_id or record_id in seen_ids:
+            raise ValueError("Missing or duplicate candidate ID.")
+
+        seen_ids.add(record_id)
+
+        if not text or hash_text(text) != row["text_sha256"]:
+            raise ValueError("Candidate transcript fingerprint mismatch.")
+
+        if (
+            row["language"] != "Bhojpuri"
+            or row["source_partition"] != "rural_women"
+            or row["research_use_status"] != "QUARANTINED"
+        ):
+            raise ValueError("Candidate record metadata mismatch.")
+
+        if not row["replacement_count"].isdigit():
+            raise ValueError("Invalid replacement count.")
+
+        replacements = int(row["replacement_count"])
+        status = row["privacy_status"]
+
+        if status == "REVIEWER_CLEARED":
+            if replacements != 0:
+                raise ValueError("Cleared record has replacements.")
+
+        elif status == "REDACTED_REVIEWER_APPROVED":
+            placeholders = PLACEHOLDER_PATTERN.findall(text)
+
+            if (
+                replacements < 1
+                or len(placeholders) != replacements
+                or any(
+                    token not in APPROVED_PLACEHOLDERS
+                    for token in placeholders
+                )
+            ):
+                raise ValueError("Candidate redaction metadata mismatch.")
+
+        else:
+            raise ValueError("Unapproved candidate privacy status.")
+
+        counts[status] += 1
+        replacement_total += replacements
+
+    manifest_counts = manifest.get("counts")
+
+    if not isinstance(manifest_counts, dict):
+        raise ValueError("Candidate manifest counts missing.")
+
+    actual_counts = {
+        "candidate_records": len(rows),
+        "reviewer_cleared": counts["REVIEWER_CLEARED"],
+        "redacted_reviewer_approved": (
+            counts["REDACTED_REVIEWER_APPROVED"]
+        ),
+        "redaction_replacements": replacement_total,
+    }
+
+    for name, value in actual_counts.items():
+        if manifest_counts.get(name) != value:
+            raise ValueError(
+                f"Manifest count mismatch: {name}"
+            )
+
+    excluded_initial = manifest_counts.get(
+        "excluded_at_initial_review"
+    )
+    excluded_validation = manifest_counts.get(
+        "excluded_after_validation"
+    )
+
+    if any(
+        type(value) is not int or value < 0
+        for value in (excluded_initial, excluded_validation)
+    ):
+        raise ValueError("Invalid excluded-record counts.")
+
+    if manifest_counts.get("original_records") != (
+        len(rows) + excluded_initial + excluded_validation
+    ):
+        raise ValueError("Original record accounting mismatch.")
+
+    return rows, manifest
+
+
 def build_candidate():
     validate_input_files()
 
@@ -267,6 +423,10 @@ def build_candidate():
     candidate_bytes = output.getvalue().encode("utf-8")
     candidate_hash = hashlib.sha256(candidate_bytes).hexdigest()
 
+    versioned_candidate = OUTPUT_CSV.with_name(
+        f"{OUTPUT_CSV.stem}.{candidate_hash}.csv"
+    )
+
     manifest = {
         "schema_version": 1,
         "dataset": "rural_women_bhojpuri_candidate",
@@ -314,7 +474,7 @@ def build_candidate():
             for label, path in INPUT_FILES.items()
         },
         "candidate_sha256": candidate_hash,
-        "candidate_file": OUTPUT_CSV.name,
+        "candidate_file": versioned_candidate.name,
         "preparation_script_sha256": sha256_file(
             Path(__file__).resolve()
         ),
@@ -330,8 +490,23 @@ def build_candidate():
         + "\n"
     ).encode("utf-8")
 
-    # Both files remain under the Git-ignored privacy directory.
-    atomic_write(OUTPUT_CSV, candidate_bytes)
+    # Never overwrite an existing version with different content.
+    if versioned_candidate.exists():
+        if sha256_file(versioned_candidate) != candidate_hash:
+            raise ValueError(
+                "Existing versioned candidate failed integrity verification."
+            )
+    else:
+        atomic_write(versioned_candidate, candidate_bytes)
+
+    # Verify the candidate before publishing its manifest.
+    if sha256_file(versioned_candidate) != candidate_hash:
+        raise ValueError(
+            "Candidate verification failed before manifest publication."
+        )
+
+    # This is the publication point. Previous manifest remains valid
+    # if candidate creation fails before this operation.
     atomic_write(OUTPUT_MANIFEST, manifest_bytes)
 
     print("QUARANTINED CANDIDATE CORPUS")
@@ -352,7 +527,7 @@ def build_candidate():
     print("Candidate SHA-256:", candidate_hash)
     print("Research-use status: QUARANTINED")
     print("Training approved: NO")
-    print("Candidate file:", OUTPUT_CSV)
+    print("Candidate file:", versioned_candidate)
     print("Manifest file:", OUTPUT_MANIFEST)
 
 

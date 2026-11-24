@@ -121,14 +121,24 @@ def test_valid_candidate_generation(synthetic_inputs):
 
     candidate.build_candidate()
 
-    with data["output_csv"].open(
-        "r", encoding="utf-8", newline=""
-    ) as file:
-        rows = list(csv.DictReader(file))
-
     manifest = json.loads(
         data["output_manifest"].read_text(encoding="utf-8")
     )
+
+    versioned_path = data["output_csv"].with_name(
+        manifest["candidate_file"]
+    )
+
+    assert versioned_path.name == (
+        f"candidate.{manifest['candidate_sha256']}.csv"
+    )
+    assert versioned_path.is_file()
+    assert not data["output_csv"].exists()
+
+    with versioned_path.open(
+        "r", encoding="utf-8", newline=""
+    ) as file:
+        rows = list(csv.DictReader(file))
 
     assert len(rows) == 2
 
@@ -161,7 +171,7 @@ def test_valid_candidate_generation(synthetic_inputs):
     assert manifest["research_use_status"] == "QUARANTINED"
 
     assert manifest["candidate_sha256"] == candidate.sha256_file(
-        data["output_csv"]
+        versioned_path
     )
 
     for label, path in data["input_files"].items():
@@ -244,3 +254,228 @@ def test_atomic_write_preserves_old_file_on_replace_failure(
     assert not list(
         tmp_path.glob("existing_candidate.csv.*.tmp")
     )
+
+
+@pytest.mark.parametrize("failure_point", ["candidate", "manifest"])
+def test_interrupted_publication_preserves_previous_manifest(
+    synthetic_inputs, monkeypatch, failure_point
+):
+    """An interrupted update must not invalidate the published version."""
+
+    data = synthetic_inputs
+
+    # Publish the initial valid synthetic candidate.
+    candidate.build_candidate()
+
+    previous_manifest_bytes = data["output_manifest"].read_bytes()
+    previous_manifest = json.loads(previous_manifest_bytes)
+
+    previous_candidate = data["output_csv"].with_name(
+        previous_manifest["candidate_file"]
+    )
+
+    previous_candidate_bytes = previous_candidate.read_bytes()
+
+    # Change a fictional input while keeping its fingerprints consistent.
+    modified_text = "???? ??? ???? ?? ?????? ?? ???? ??? ??? ??"
+    modified_hash = candidate.hash_text(modified_text)
+
+    data["records"][0]["text"] = modified_text
+    data["records"][0]["text_sha256"] = modified_hash
+
+    data["reviews"][data["clear_id"]]["text_sha256"] = modified_hash
+
+    original_atomic_write = candidate.atomic_write
+
+    def inject_failure(path, content):
+        if failure_point == "candidate":
+            should_fail = path != data["output_manifest"]
+        else:
+            should_fail = path == data["output_manifest"]
+
+        if should_fail:
+            raise OSError(
+                f"Simulated {failure_point} publication failure"
+            )
+
+        return original_atomic_write(path, content)
+
+    monkeypatch.setattr(
+        candidate,
+        "atomic_write",
+        inject_failure,
+    )
+
+    with pytest.raises(
+        OSError,
+        match="publication failure",
+    ):
+        candidate.build_candidate()
+
+    # Publication must still reference the original candidate.
+    assert (
+        data["output_manifest"].read_bytes()
+        == previous_manifest_bytes
+    )
+
+    assert previous_candidate.read_bytes() == previous_candidate_bytes
+
+    assert candidate.sha256_file(previous_candidate) == (
+        previous_manifest["candidate_sha256"]
+    )
+
+    assert previous_candidate.name == previous_manifest["candidate_file"]
+
+
+def test_manifest_reader_accepts_valid_candidate(synthetic_inputs):
+    data = synthetic_inputs
+    candidate.build_candidate()
+
+    rows, manifest = candidate.load_published_candidate(
+        data["output_manifest"]
+    )
+
+    assert len(rows) == 2
+    assert {row["record_id"] for row in rows} == {
+        data["clear_id"],
+        data["redact_id"],
+    }
+    assert manifest["counts"]["candidate_records"] == 2
+    assert manifest["training_approved"] is False
+
+
+@pytest.mark.parametrize(
+    "scenario, expected_error",
+    [
+        ("training", "Candidate quarantine policy mismatch"),
+        ("filename", "Invalid versioned candidate filename"),
+        ("counts", "Manifest count mismatch"),
+        ("hash_format", "Invalid manifest candidate SHA-256"),
+    ],
+)
+def test_manifest_reader_rejects_invalid_manifest(
+    synthetic_inputs, scenario, expected_error
+):
+    data = synthetic_inputs
+    candidate.build_candidate()
+
+    path = data["output_manifest"]
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+
+    if scenario == "training":
+        manifest["training_approved"] = True
+
+    elif scenario == "filename":
+        manifest["candidate_file"] = "candidate.csv"
+
+    elif scenario == "counts":
+        manifest["counts"]["candidate_records"] = 999
+
+    elif scenario == "hash_format":
+        manifest["candidate_sha256"] = "invalid-hash"
+
+    path.write_text(
+        json.dumps(manifest),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match=expected_error):
+        candidate.load_published_candidate(path)
+
+
+@pytest.mark.parametrize(
+    "scenario, expected_exception, expected_message",
+    [
+        (
+            "missing",
+            FileNotFoundError,
+            "Published candidate file is missing",
+        ),
+        (
+            "corrupted",
+            ValueError,
+            "Published candidate SHA-256 mismatch",
+        ),
+    ],
+)
+def test_manifest_reader_rejects_missing_or_corrupted_candidate(
+    synthetic_inputs,
+    scenario,
+    expected_exception,
+    expected_message,
+):
+    data = synthetic_inputs
+    candidate.build_candidate()
+
+    manifest = json.loads(
+        data["output_manifest"].read_text(encoding="utf-8")
+    )
+
+    versioned_path = data["output_csv"].with_name(
+        manifest["candidate_file"]
+    )
+
+    if scenario == "missing":
+        versioned_path.unlink()
+    else:
+        versioned_path.write_bytes(
+            versioned_path.read_bytes() + b"corrupted"
+        )
+
+    with pytest.raises(
+        expected_exception,
+        match=expected_message,
+    ):
+        candidate.load_published_candidate(
+            data["output_manifest"]
+        )
+
+
+def test_reader_rejects_invalid_schema_even_with_matching_hash(
+    synthetic_inputs,
+):
+    data = synthetic_inputs
+    candidate.build_candidate()
+
+    manifest_path = data["output_manifest"]
+    manifest = json.loads(
+        manifest_path.read_text(encoding="utf-8")
+    )
+
+    original_path = data["output_csv"].with_name(
+        manifest["candidate_file"]
+    )
+
+    content = original_path.read_bytes()
+
+    altered = content.replace(
+        b"record_id,text,language,",
+        b"record_id,body,language,",
+        1,
+    )
+
+    assert altered != content
+
+    new_hash = candidate.hashlib.sha256(
+        altered
+    ).hexdigest()
+
+    new_path = data["output_csv"].with_name(
+        f"candidate.{new_hash}.csv"
+    )
+
+    new_path.write_bytes(altered)
+
+    manifest["candidate_sha256"] = new_hash
+    manifest["candidate_file"] = new_path.name
+
+    manifest_path.write_text(
+        json.dumps(manifest),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Candidate CSV schema mismatch",
+    ):
+        candidate.load_published_candidate(manifest_path)
