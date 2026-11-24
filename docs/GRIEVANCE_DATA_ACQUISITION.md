@@ -86,6 +86,148 @@ Questions:
 Status: PROSPECTIVE BENCHMARK; NOT VERIFIED.
 Training approval: NO.
 
+#### CivicComp author-linked release audit
+
+Assessment date: 2026-11-24.
+
+Author-linked Kaggle release:
+https://www.kaggle.com/datasets/shyamtripathi373/civiccomp-hien-hindienglish-civic-complaints
+
+Publication DOI:
+https://doi.org/10.1109/WiSPNET69615.2026.11489415
+
+The dataset documentation inspected manually declares:
+
+- Dataset name: CivicComp-HiEn.
+- Licence: CC BY-SA 4.0.
+- Claimed origin: BBMP civic complaints, Bengaluru.
+- Languages: English, Hindi, and Hinglish.
+- Parallel columns: complaint_en, complaint_hi,
+  complaint_hinglish.
+- Shared complaint identifier: id.
+- Complaint label: category.
+- Published splits: train, dev, and test.
+- Privacy processing: rule-based PII removal.
+- Hindi and Hinglish: multilingual expansions of
+  English complaint material.
+
+The licence declaration is not yet independently checked
+against the actual LICENSE.txt and source rights.
+
+Reported split counts:
+
+| Split | Complaint triplets |
+|---|---:|
+| Train | 8,000 |
+| Dev | 1,600 |
+| Test | 1,600 |
+| Arithmetic total | 11,200 |
+
+Three language variants per triplet imply 33,600 text
+instances if these reported split counts are correct.
+
+The same documentation separately claims 16,000 aligned
+triplets and 48,000 text instances.
+
+The IEEE publication also reports 48,000 complaints,
+but its abstract contains a language breakdown that
+requires clarification.
+
+Actual CSV row counts have not been verified.
+
+Research implications:
+
+- The dataset may support Hindi-English-Hinglish
+  cross-lingual complaint classification benchmarks.
+- Language variants sharing an ID must remain in the
+  same partition for leakage-aware evaluation.
+- Translated Hindi and Hinglish must not be described
+  as independent native-language complaint submissions.
+- This dataset provides no documented Bhojpuri or
+  Maithili coverage.
+- The original BBMP records' provenance and applicable
+  permissions remain to be verified.
+- Rule-based PII removal is not proof of anonymization.
+- Original labels and quality-control claims require
+  independent assessment.
+
+Next evidence required:
+
+1. Exact row counts from the published CSV files.
+2. Actual LICENSE.txt and applicable source permissions.
+3. File-level version and provenance information.
+4. Whether IDs and translation groups are split safely.
+5. Privacy and label-quality verification.
+
+Decision: PROSPECTIVE BENCHMARK.
+Training approval: NO.
+
+#### CivicComp Kaggle release inspection
+
+Assessment date: 2026-11-24.
+
+Author-linked release:
+https://www.kaggle.com/datasets/shyamtripathi373/civiccomp-hien-hindienglish-civic-complaints
+
+The inspected LICENSE.txt declares CC BY-SA 4.0.
+
+It identifies the original creators as Vivek Mathew and
+Haji Shariefullah, with modifications attributed to the
+CivicComp research team:
+
+- Shyam Tripathi
+- Kothamsu Hridayesh
+- K. Ashwini
+- Kritika Agrahari
+
+Institution: Amrita Vishwa Vidyapeetham, Chennai Campus.
+Claimed original source: https://newdata.opencity.in
+
+These are release-document claims. The specific original
+OpenCity resources and their applicable rights have not
+yet been matched to individual CivicComp records.
+
+The README describes parallel English, Hindi, and
+Hinglish complaint triplets, category labels, and fixed
+train, development, and test splits.
+
+The README's split counts total 11,200 triplets and
+33,600 language instances, whereas it separately claims
+16,000 triplets and 48,000 language instances.
+
+The Kaggle preview appears to expose a different schema,
+including:
+
+- Sy_No
+- Complaint_Title
+- Text_en
+- Text_hi
+- Text_hinglish
+- primary_category
+- secondary_category
+- Severity
+- Model_Name
+
+Exact column names require confirmation from the file
+header. The observed unique-value counts of 30,752,
+27,798, and 30,158 do not establish total row counts.
+
+The preview also displayed ERROR values in at least
+one profiled field. Their location, frequency, and
+meaning have not been independently verified.
+
+Before eligibility assessment, verify:
+
+1. Actual CSV filename, schema, and number of rows.
+2. Whether claimed train/dev/test files really exist.
+3. Identifier uniqueness and translation-group integrity.
+4. Missing values, error placeholders, and label quality.
+5. Exact upstream OpenCity resource and source licence.
+6. Privacy, attribution, and downstream-use obligations.
+
+Current decision: PROSPECTIVE BENCHMARK.
+Model-training approval: NOT ESTABLISHED.
+
 ### Candidate D ? Consented field-data partnership
 
 Potential route:
