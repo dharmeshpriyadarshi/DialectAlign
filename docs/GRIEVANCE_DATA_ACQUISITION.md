@@ -228,6 +228,69 @@ Before eligibility assessment, verify:
 Current decision: PROSPECTIVE BENCHMARK.
 Model-training approval: NOT ESTABLISHED.
 
+#### CivicComp Common_Dataset file-level inspection
+
+Assessment date: 2026-11-25.
+
+Evidence: manually inspected Kaggle Version 4
+Data Explorer screenshots.
+
+Observed files:
+
+| File | Observed identifier count | Columns |
+|---|---:|---:|
+| Common_Dataset.csv | 30,752 unique IDs | 8 |
+| Train.csv | Approximately 14,200 valid IDs | 9 |
+| Dev.csv | 3,035 valid IDs | 9 |
+| Test.csv | 3,036 valid IDs | 9 |
+
+The training count is rounded by Kaggle's interface.
+The combined split size is approximately 20,300 records,
+subject to exact file-level verification.
+
+The 30,752 figure describes unique identifiers in
+Common_Dataset.csv, not the training partition.
+
+The original README describes different split counts:
+
+- Training: 8,000
+- Development: 1,600
+- Testing: 1,600
+
+It also separately claims 16,000 aligned triplets
+and 48,000 language instances.
+
+These claims are inconsistent with the inspected
+Common_Dataset file profiles.
+
+Additional observations:
+
+- The common dataset contains eight columns.
+- The split files contain nine columns.
+- The dataset release contains Common_Dataset and
+  Synthetic_Dataset directories.
+- Some Hindi and Hinglish fields contain ERROR values.
+- Some primary-category labels are missing.
+- Model_Name metadata indicates model-assisted processing,
+  but its exact role has not been established.
+
+Outstanding verification requirements:
+
+1. Determine exact CSV row counts.
+2. Identify the ninth split-file column.
+3. Determine how the common dataset relates to its splits.
+4. Verify that split identifiers are mutually exclusive.
+5. Investigate duplicates and translation-group leakage.
+6. Determine original versus synthetic record provenance.
+7. Review translation failures and label quality.
+8. Verify upstream OpenCity resource-level permissions.
+
+No complaint text has been downloaded or redistributed
+during this inspection.
+
+Decision: STRUCTURAL INVESTIGATION INCOMPLETE.
+Training approval: NOT ESTABLISHED.
+
 ### Candidate D ? Consented field-data partnership
 
 Potential route:
