@@ -58,6 +58,81 @@ whereas the aggregate declares CC-BY-4.0.
 
 The discrepancy requires original-source rights verification.
 
+#### Reproduced local overlap audit
+
+Audit date: 2026-11-24.
+
+Local inputs:
+
+- Aggregate: `data/external/bhojpuri_corpus/BhojpuriCorpus.parquet`
+- Upstream: `data/external/goldfish_bhojpuri/bho_deva.txt`
+
+Verified results:
+
+| Measure | Result |
+|---|---:|
+| Local fish_food records | 215,813 |
+| Upstream nonempty lines | 262,243 |
+| Unique normalized upstream lines | 262,178 |
+| Normalized exact-text matches | 213,440 |
+| Local records without exact matches | 2,373 |
+| Exact-match proportion | 98.90% |
+| Aggregate source URLs | 1 |
+
+Text matching used Unicode NFC normalization and whitespace
+normalization.
+
+Input SHA-256 fingerprints:
+
+- Aggregate Parquet: `04a0f2b64736df1efc9f32774b97bfe5e571d0a22af329819c756ed53745a135`
+- Goldfish text: `86251b009c5af92fcc4e1060a39e308958a5f967353301cc9ea55b0001a2f9be`
+
+The overlap supports substantial textual correspondence, not
+complete record-level provenance or legal authorization.
+
+Unmatched records require further investigation. Differences
+may reflect source versions, preprocessing, or other origins.
+
+Eligibility decision: QUARANTINED.
+
+#### Normalization sensitivity investigation
+
+Audit date: 2026-11-24.
+
+A follow-up comparison investigated the 2,373 records that did
+not match the inspected Goldfish source under NFC and whitespace
+normalization.
+
+| Comparison | Records |
+|---|---:|
+| Initial NFC exact matches | 213,440 |
+| Initially unmatched | 2,373 |
+| Additional NFKC matches | 0 |
+| Additional punctuation/whitespace-insensitive matches | 2,095 |
+| Remaining unmatched after relaxed checks | 278 |
+
+All 2,373 initially unmatched records had distinct NFC-normalized
+texts.
+
+The initially unmatched texts had a median length of 41
+characters and a 90th-percentile length of 105 characters.
+
+The remaining 278 texts had a median length of 43 characters
+and a 90th-percentile length of 134 characters.
+
+The additional 2,095 correspondences are diagnostic only.
+Removing punctuation and whitespace can produce accidental
+matches and does not independently establish record lineage.
+
+The remaining 278 records may differ because of preprocessing,
+source versions, or other origins. Their provenance remains
+unresolved.
+
+This investigation does not establish training permission,
+redistribution rights, or complete record-level attribution.
+
+Eligibility decision: QUARANTINED.
+
 ### rural_women
 
 The aggregate declares CC-BY-4.0.
