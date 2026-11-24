@@ -192,6 +192,53 @@ Outstanding questions:
 5. Assess linguistic relevance separately from grievance labels.
 
 Eligibility decision: QUARANTINED.
+
+#### Quarantined candidate structural audit
+
+Audit date: 2026-11-24.
+
+The published, privacy-processed candidate was inspected
+using aggregate statistics only. No transcript contents
+were displayed.
+
+| Measure | Result |
+|---|---:|
+| Candidate records | 211 |
+| Unique record IDs | 211 |
+| Empty normalized texts | 0 |
+| Unique normalized texts | 211 |
+| Duplicate excess rows | 0 |
+| Bhojpuri language records | 211 |
+| Reviewer-cleared records | 176 |
+| Redacted and reviewer-approved records | 35 |
+| Minimum text length | 13 characters |
+| Median text length | 84 characters |
+| Maximum text length | 270 characters |
+| Records marked QUARANTINED | 211 |
+
+Research interpretation:
+
+- The candidate has no detected empty texts, repeated
+  normalized texts, or duplicate record identifiers.
+- These findings support structural readiness for a
+  possible future annotation workflow.
+- They do not establish linguistic authenticity or
+  grievance-domain relevance.
+- Internal uniqueness does not establish independence
+  from upstream datasets, speakers, or translations.
+- Single-reviewer privacy approval does not guarantee
+  anonymization.
+- Permission for secondary use remains unresolved.
+- No grievance labels have been assigned or inferred.
+
+Current suitability decisions:
+
+- Structural readiness: PASS.
+- Linguistic research eligibility: NOT ESTABLISHED.
+- Civic grievance classification eligibility: NOT ESTABLISHED.
+- Model-training eligibility: NOT APPROVED.
+
+Overall eligibility decision: QUARANTINED.
 ### Other partitions
 
 Original-source licences, applicable attribution obligations,
