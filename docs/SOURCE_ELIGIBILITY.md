@@ -239,6 +239,77 @@ Current suitability decisions:
 - Model-training eligibility: NOT APPROVED.
 
 Overall eligibility decision: QUARANTINED.
+
+#### Use-specific secondary research eligibility
+
+Assessment date: 2026-11-24.
+
+Evidence sources:
+
+- Original dataset card:
+  https://huggingface.co/datasets/ai4bharat/Rural_Women_Bhojpuri
+- Original research repository:
+  https://github.com/AI4Bharat/Sruti
+- Creative Commons BY-SA 4.0:
+  https://creativecommons.org/licenses/by-sa/4.0/
+- Creative Commons AI training guidance:
+  https://creativecommons.org/using-cc-licensed-works-for-ai-training-2/
+
+The upstream dataset declares CC BY-SA 4.0. This licence
+permits reuse subject to applicable conditions; it does
+not categorically prohibit private research or AI training.
+
+Attribution, ShareAlike requirements for relevant shared
+adaptations, and any other applicable obligations must
+be assessed for the intended use.
+
+Copyright licensing does not necessarily grant participant
+privacy, publicity, or other non-copyright permissions.
+
+Project-specific use decisions:
+
+| Intended use | Current decision |
+|---|---|
+| Aggregate metadata and provenance auditing | COMPLETED |
+| Quarantined privacy-processing workflow | COMPLETED |
+| Transcript-level linguistic research | HOLD |
+| Manual civic grievance annotation | HOLD |
+| Model training | NOT APPROVED |
+| Public transcript or dataset redistribution | NOT APPROVED |
+
+The completed activities above do not constitute a general
+research-use authorization.
+
+Requirements before transcript-level linguistic research:
+
+1. Confirm the exact source version and applicable terms.
+2. Review participant privacy and secondary-use implications.
+3. Establish appropriate access and disclosure safeguards.
+4. Define a limited, scientifically justified research purpose.
+
+Additional requirements before grievance annotation:
+
+1. Define grievance and non-grievance criteria.
+2. Establish an annotation and disagreement protocol.
+3. Assess domain relevance without assuming service-related
+   queries are complaints.
+4. Investigate speaker, source, and translation dependence.
+
+Additional requirements before model training or publication:
+
+1. Resolve applicable source and downstream-use obligations.
+2. Complete the relevant privacy and ethical review.
+3. Establish provenance and leakage-aware evaluation design.
+4. Document reproducible permitted-use decisions.
+5. Review model and dataset release restrictions separately.
+
+The project may publish its own aggregate audit findings,
+subject to reviewing disclosure risk and source obligations.
+
+These are conservative project governance decisions,
+not definitive legal interpretations.
+
+Overall eligibility decision: QUARANTINED.
 ### Other partitions
 
 Original-source licences, applicable attribution obligations,
