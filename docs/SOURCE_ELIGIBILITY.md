@@ -144,6 +144,54 @@ Privacy processing has been completed for the 211 local records
 under a single-reviewer workflow, but independent privacy
 verification and secondary-use eligibility remain unresolved.
 
+
+#### Upstream publication and consent evidence
+
+Verification date: 2026-11-24.
+
+Primary dataset:
+https://huggingface.co/datasets/ai4bharat/Rural_Women_Bhojpuri
+
+Dataset card revision examined:
+https://huggingface.co/datasets/ai4bharat/Rural_Women_Bhojpuri/blob/b8058d00de0bc4d89beeb568f6ca431848a9fe14/README.md
+
+Primary publication:
+Joshi et al. (2025), "Recognizing Every Voice: Towards
+Inclusive ASR for Rural Bhojpuri Women."
+https://arxiv.org/html/2506.09653
+
+Verified source-level findings:
+
+- Original dataset licence declaration: CC BY-SA 4.0.
+- Aggregate licence declaration: CC-BY-4.0.
+- Original purpose: inclusive Bhojpuri ASR research.
+- The source contains real and synthetic speech material.
+- The paper reports informed consent during data collection.
+- The consent description does not independently verify the
+  precise scope of every permitted secondary research use.
+- Source domains include health, agriculture, government
+  schemes, finance, and everyday conversation.
+- Service-related utterances are not automatically grievances.
+
+Local processing evidence:
+
+- 211 candidate transcripts have undergone the existing
+  privacy review and redaction workflow.
+- 176 were marked clear and 35 required redaction.
+- All 35 redacted records were subsequently approved within
+  the same-reviewer workflow.
+- Independent privacy verification has not occurred.
+- These records have not been approved for model training.
+
+Outstanding questions:
+
+1. Confirm applicable licensing and attribution obligations.
+2. Clarify secondary-use and redistribution conditions.
+3. Independently assess privacy risks where appropriate.
+4. Establish speaker and source leakage safeguards.
+5. Assess linguistic relevance separately from grievance labels.
+
+Eligibility decision: QUARANTINED.
 ### Other partitions
 
 Original-source licences, applicable attribution obligations,
